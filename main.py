@@ -6,7 +6,6 @@ import datetime as dt
 import requests as rq
 
 def main():
-    #print(uiLayout)
     class APICaller():
         def __init__(api):
             api.url = 'https://api.meraki.com/api/v1'
@@ -15,6 +14,7 @@ def main():
             except:
                 api.key = '37a10db07204cb50ae8a39d4b4772f5ba21b572d'
                 api.headers = {'X-Cisco-Meraki-API-Key': api.key}
+
         def organizations(api):
             url = api.url+"/organizations/"
             orgs = rq.get(url,headers=api.headers).json()
@@ -23,7 +23,13 @@ def main():
                     api.orgs.append(x)
                 except:
                     api.orgs = x
-            print(api.orgs)
+            try:
+                orgs = pd.DataFrame(orgs)
+            except:
+                orgs = pd.Series(orgs)
+            print('\n\nOrganizations\n')
+                print(orgs)
+
         def networks(api):
             try:
                 orgId = api.orgs['id']
@@ -33,9 +39,12 @@ def main():
                 orgId = api.orgs['id']
             url = str(api.url+'/organizations/{}/networks/').format(api.orgs['id'])
             api.networks = rq.get(url,headers=api.headers).json()
-            for x in api.networks:
-                print("[ {} | {} : Device types Present - {}".format(x['id'],x['name'],*x['productTypes']))
-
+            try:
+                api.dfnetworks = pd.DataFrame(api.networks)
+            except:
+                api.dfnetworks = pd.Series(api.networks)
+            print('\n\nNetworks\n')
+            print(api.dfnetworks)
 
         def devices(api):
             try:
@@ -46,16 +55,9 @@ def main():
 
             url = str(api.url+'/organizations/{}/inventoryDevices').format(orgId)
             api.inventoryDevices = rq.get(url,headers=api.headers).json()
-            api.inventoryDevices = pd.DataFrame(api.inventoryDevices)
-            print(api.inventoryDevices)
-            """
-            for x in api.inventoryDevices:
-                outputFormat = "[ | Name: {name} | {serial} | {mac} | {model} ]".format(model = x['model'], serial = x['serial'], mac = x['mac'],name =x['name'])
-
-                print(outputFormat)"""
-
-
-
+            api.dfinventoryDevices = pd.DataFrame(api.inventoryDevices)
+            print("\n\nDevices\n")
+            print(api.dfinventoryDevices)
     APICaller().networks()
     APICaller().devices()
 
