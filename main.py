@@ -4,20 +4,22 @@ import numpy
 import os
 import datetime as dt
 import requests as rq
-
-
+masterReport ={}
 class APICaller():
+
     def __init__(api):
         api.url = 'https://api.meraki.com/api/v1'
         try:
+            api.key = '37a10db07204cb50ae8a39d4b4772f5ba21b572d'
             api.headers = {'X-Cisco-Meraki-API-Key': api.key}
         except:
-            api.key = '37a10db07204cb50ae8a39d4b4772f5ba21b572d'
+            api.key=input("API KEY: ")
             api.headers = {'X-Cisco-Meraki-API-Key': api.key}
 
     def organizations(api):
         url = api.url+"/organizations/"
         orgs = rq.get(url,headers=api.headers).json()
+        masterReport[url] = orgs
         for x in orgs:
             try:
                 api.orgs.append(x)
@@ -39,6 +41,7 @@ class APICaller():
             orgId = api.orgs['id']
         url = str(api.url+'/organizations/{}/networks/').format(api.orgs['id'])
         api.networks = rq.get(url,headers=api.headers).json()
+        masterReport[url] = api.networks
         try:
             api.dfnetworks = pd.DataFrame(api.networks)
         except:
@@ -55,7 +58,9 @@ class APICaller():
 
         url = str(api.url+'/organizations/{}/inventoryDevices').format(orgId)
         api.inventoryDevices = rq.get(url,headers=api.headers).json()
+        masterReport[url] = api.inventoryDevices
         api.dfinventoryDevices = pd.DataFrame(api.inventoryDevices)
+
         #print("\n\nDevices\n")
         #print(api.dfinventoryDevices)
 
@@ -63,14 +68,22 @@ class APICaller():
         try:
             url = str(api.url+'/devices/{}/switch/{}').format(serial,'ports/statuses')
             switchPortStatus= rq.get(url,headers=api.headers).json()
+            masterReport[url] = switchPortStatus
             return switchPortStatus
+
             url = str(api.url+'/devices/{}/switch/{}').format(serial,'ports/statuses/packets')
             switchPortPackets= rq.get(url,headers=api.headers).json()
+            masterReport[url] = switchPortPackets
             return switchPortPackets
+
             #switchPort
         except:
             pass
+
     def wireless(api,serial):
         pass
+APICaller().organizations()
+APICaller().networks()
 APICaller().switches('Q2HP-P28Q-BDFR')
+print(masterReport)
 #APICaller().devices()

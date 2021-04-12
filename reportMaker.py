@@ -7,6 +7,7 @@ a = main.APICaller()
 a.organizations()
 a.networks()
 a.devices()
+a.switches('Q2HP-P28Q-BDFR')
 print(a.networks)
 print(a.orgs)
 
@@ -33,7 +34,7 @@ class wordDoc():
             elif 'MV' in x['model']:
                 x.update({'deviceType': 'cam'})
             print(docOrgInventory.format(x['mac'],x['name'],x['model'],x['serial'],x['networkId'],x['deviceType']))
-            
-        switches()
+
+
 
 wordDoc().formatDoc()
